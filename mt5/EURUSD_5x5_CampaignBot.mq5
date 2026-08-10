@@ -1,5 +1,5 @@
 #property copyright "EVE EURUSD 5x5 Campaign Bot"
-#property version   "1.00"
+#property version   "1.01"
 #property strict
 #property description "EURUSD 5 buy-stop / 5 sell-stop campaign EA with Railway control"
 
@@ -9,8 +9,8 @@ CTrade Trade;
 
 input group "EUR/USD ladder"
 input double InpLotSize                  = 0.01;
-input double InpFirstOrderDistancePips   = 5.0;
-input double InpOrderSpacingPips         = 5.0;
+input double InpFirstOrderDistancePips   = 1.0;
+input double InpOrderSpacingPips         = 1.0;
 input double InpIndividualTakeProfitPips = 5.0;
 input double InpBreakevenOffsetPips      = 0.0;
 input long   InpMagicNumber              = 550055;

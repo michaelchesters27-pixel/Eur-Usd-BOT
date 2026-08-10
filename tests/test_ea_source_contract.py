@@ -30,3 +30,8 @@ def test_ea_contains_all_money_and_breakeven_stops():
 
 def test_campaign_target_defaults_to_five_dollars():
     assert "InpCampaignTargetMoney       = 5.0" in EA_SOURCE
+
+
+def test_live_ladder_defaults_are_close_to_price():
+    assert "InpFirstOrderDistancePips   = 1.0" in EA_SOURCE
+    assert "InpOrderSpacingPips         = 1.0" in EA_SOURCE

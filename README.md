@@ -8,7 +8,8 @@ This is one complete project containing:
 - automated tests for the Railway service.
 
 Version 1.01 fixes the live dashboard refresh so it cannot erase a money limit
-while the user moves between the two amount boxes.
+while the user moves between the two amount boxes. It also changes the live
+ladder defaults to 1 pip from price and 1 pip between orders.
 
 ## Locked bot behaviour
 
@@ -32,8 +33,8 @@ Market execution can slip by a few cents around an exact money threshold. The EA
 
 The order spacing and individual order TP were not yet locked, so they are safe MT5 inputs and do not require another code build:
 
-- first pending order distance: **5 pips** by default;
-- spacing between pending orders: **5 pips** by default;
+- first pending order distance: **1 pip** by default;
+- spacing between pending orders: **1 pip** by default;
 - individual TP distance: **5 pips** by default;
 - lot size: **0.01** by default;
 - breakeven price offset: **0 pips** by default.
