@@ -10,6 +10,12 @@ let saveTimer = null;
 let latestState = null;
 let toastTimer = null;
 let limitsDirty = false;
+let restoreAttempted = false;
+
+const limitStorageKeys = {
+  profit: 'eurusd5x5.profitTarget',
+  loss: 'eurusd5x5.maxLoss'
+};
 
 function number(value, fallback = 0) {
   const parsed = Number(value);
@@ -31,6 +37,25 @@ function showToast(message, error = false) {
   els.toast.className = `toast show${error ? ' error' : ''}`;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { els.toast.className = 'toast'; }, 2600);
+}
+
+function rememberLimits(profitTarget, maxLoss) {
+  try {
+    localStorage.setItem(limitStorageKeys.profit, String(profitTarget));
+    localStorage.setItem(limitStorageKeys.loss, String(maxLoss));
+  } catch (_) {
+    // The server still keeps the current values when browser storage is unavailable.
+  }
+}
+
+function storedLimits() {
+  try {
+    const profitTarget = number(localStorage.getItem(limitStorageKeys.profit));
+    const maxLoss = number(localStorage.getItem(limitStorageKeys.loss));
+    return profitTarget > 0 && maxLoss > 0 ? { profitTarget, maxLoss } : null;
+  } catch (_) {
+    return null;
+  }
 }
 
 function statusCopy(status) {
@@ -89,6 +114,9 @@ function render(state) {
     els.saveState.textContent = control.limits_configured ? 'Saved' : 'Not set';
     els.saveState.className = `save-state${control.limits_configured ? ' saved' : ''}`;
   }
+  if (control.limits_configured) {
+    rememberLimits(control.profit_target, control.max_loss);
+  }
 
   const runPl = number(t.run_pl);
   const campaignPl = number(t.campaign_pl);
@@ -137,7 +165,25 @@ async function api(path, options = {}) {
 
 async function refresh() {
   try {
-    render(await api('/api/status'));
+    let state = await api('/api/status');
+    const control = state.control || {};
+    const saved = storedLimits();
+    if (!control.limits_configured && saved && !restoreAttempted && !limitsDirty) {
+      restoreAttempted = true;
+      limitsDirty = true;
+      els.profitTarget.value = saved.profitTarget;
+      els.maxLoss.value = saved.maxLoss;
+      await api('/api/settings', {
+        method: 'POST',
+        body: JSON.stringify({
+          profit_target: saved.profitTarget,
+          max_loss: saved.maxLoss
+        })
+      });
+      limitsDirty = false;
+      state = await api('/api/status');
+    }
+    render(state);
   } catch (error) {
     els.connectionBadge.className = 'connection';
     els.connectionBadge.querySelector('span').textContent = 'Dashboard offline';
@@ -165,6 +211,7 @@ async function saveLimits() {
       method: 'POST',
       body: JSON.stringify({ profit_target: profitTarget, max_loss: maxLoss })
     });
+    rememberLimits(profitTarget, maxLoss);
     limitsDirty = false;
     els.saveState.textContent = 'Saved';
     els.saveState.className = 'save-state saved';
