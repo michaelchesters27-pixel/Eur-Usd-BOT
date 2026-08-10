@@ -62,7 +62,14 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
 
     @app.get("/health")
     def health() -> Any:
-        return jsonify({"ok": True, "service": "eurusd-5x5-bot"})
+        return jsonify(
+            {
+                "ok": True,
+                "service": "eurusd-5x5-bot",
+                "version": "1.02",
+                "limit_persistence": True,
+            }
+        )
 
     @app.route("/login", methods=["GET", "POST"])
     def login() -> Any:
