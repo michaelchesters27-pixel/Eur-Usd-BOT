@@ -24,8 +24,15 @@ def utc_now() -> str:
 class StateStore:
     """Small persistent state store for one EURUSD EA instance."""
 
-    def __init__(self, database_path: str):
+    def __init__(
+        self,
+        database_path: str,
+        default_profit_target: float = 0,
+        default_max_loss: float = 0,
+    ):
         self.database_path = database_path
+        self.default_profit_target = max(0.0, float(default_profit_target))
+        self.default_max_loss = max(0.0, float(default_max_loss))
         self._lock = threading.RLock()
         Path(database_path).parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
@@ -66,14 +73,24 @@ class StateStore:
                 """
             )
             now = utc_now()
+            initial_status = (
+                "READY"
+                if self.default_profit_target > 0 and self.default_max_loss > 0
+                else "WAITING_FOR_LIMITS"
+            )
             connection.execute(
                 """
                 INSERT OR IGNORE INTO control_state
                     (id, profit_target, max_loss, campaign_target, enabled,
                      active_session, status, updated_at)
-                VALUES (1, 0, 0, 5, 0, '', 'WAITING_FOR_LIMITS', ?)
+                VALUES (1, ?, ?, 5, 0, '', ?, ?)
                 """,
-                (now,),
+                (
+                    self.default_profit_target,
+                    self.default_max_loss,
+                    initial_status,
+                    now,
+                ),
             )
             connection.execute(
                 """
