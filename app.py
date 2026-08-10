@@ -17,12 +17,18 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         BOT_API_KEY=os.environ.get("BOT_API_KEY", "local-dev-key"),
         DASHBOARD_PASSWORD=os.environ.get("DASHBOARD_PASSWORD", ""),
         STATE_DB_PATH=default_database,
+        DEFAULT_PROFIT_TARGET=float(os.environ.get("DEFAULT_PROFIT_TARGET", "100")),
+        DEFAULT_MAX_LOSS=float(os.environ.get("DEFAULT_MAX_LOSS", "50")),
     )
     if test_config:
         app.config.update(test_config)
 
     Path(app.config["STATE_DB_PATH"]).parent.mkdir(parents=True, exist_ok=True)
-    store = StateStore(app.config["STATE_DB_PATH"])
+    store = StateStore(
+        app.config["STATE_DB_PATH"],
+        default_profit_target=app.config["DEFAULT_PROFIT_TARGET"],
+        default_max_loss=app.config["DEFAULT_MAX_LOSS"],
+    )
     app.extensions["state_store"] = store
 
     def dashboard_authorized() -> bool:
