@@ -9,6 +9,7 @@ const els = Object.fromEntries([
 let saveTimer = null;
 let latestState = null;
 let toastTimer = null;
+let limitsDirty = false;
 
 function number(value, fallback = 0) {
   const parsed = Number(value);
@@ -82,10 +83,12 @@ function render(state) {
   els.statusMessage.textContent = t.message || message;
   els.campaignNumber.textContent = t.campaign_number ? `Campaign ${t.campaign_number}` : 'Campaign —';
 
-  if (document.activeElement !== els.profitTarget) els.profitTarget.value = control.profit_target || '';
-  if (document.activeElement !== els.maxLoss) els.maxLoss.value = control.max_loss || '';
-  els.saveState.textContent = control.limits_configured ? 'Saved' : 'Not set';
-  els.saveState.className = `save-state${control.limits_configured ? ' saved' : ''}`;
+  if (!limitsDirty) {
+    if (document.activeElement !== els.profitTarget) els.profitTarget.value = control.profit_target || '';
+    if (document.activeElement !== els.maxLoss) els.maxLoss.value = control.max_loss || '';
+    els.saveState.textContent = control.limits_configured ? 'Saved' : 'Not set';
+    els.saveState.className = `save-state${control.limits_configured ? ' saved' : ''}`;
+  }
 
   const runPl = number(t.run_pl);
   const campaignPl = number(t.campaign_pl);
@@ -143,6 +146,7 @@ async function refresh() {
 
 function scheduleSave() {
   clearTimeout(saveTimer);
+  limitsDirty = true;
   els.saveState.textContent = 'Typing…';
   els.saveState.className = 'save-state';
   saveTimer = setTimeout(saveLimits, 650);
@@ -161,6 +165,7 @@ async function saveLimits() {
       method: 'POST',
       body: JSON.stringify({ profit_target: profitTarget, max_loss: maxLoss })
     });
+    limitsDirty = false;
     els.saveState.textContent = 'Saved';
     els.saveState.className = 'save-state saved';
     showToast(`Limits set: +${formatMoney(profitTarget)} / −${formatMoney(maxLoss)}`);

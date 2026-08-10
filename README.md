@@ -7,6 +7,9 @@ This is one complete project containing:
 - persistent dashboard settings;
 - automated tests for the Railway service.
 
+Version 1.01 fixes the live dashboard refresh so it cannot erase a money limit
+while the user moves between the two amount boxes.
+
 ## Locked bot behaviour
 
 1. A campaign places **5 Buy Stops and 5 Sell Stops** around the current EUR/USD price.
